@@ -80,13 +80,14 @@ class BingImageFetcher
      */
     public function serveRedirect(string $resolution = '1920x1080'): void
     {
+        $this->sendCorsHeaders();
         $url = $this->getImageUrl($resolution);
-
+        
         if ($url) {
             header('Location: ' . $url);
             exit();
         }
-
+        
         $this->serveError();
     }
 
@@ -97,21 +98,22 @@ class BingImageFetcher
      */
     public function serveImage(string $resolution = '1920x1080'): void
     {
+        $this->sendCorsHeaders();
         $url = $this->getImageUrl($resolution);
-
+        
         if ($url) {
             header('Content-Type: image/jpeg');
             header('Cache-Control: public, max-age=3600'); // Cache for 1 hour
-
+            
             // Clean output buffer to ensure no whitespace is sent before image
             if (ob_get_level()) {
                 ob_end_clean();
             }
-
+            
             readfile($url);
             exit();
         }
-
+        
         $this->serveError();
     }
 
@@ -120,7 +122,18 @@ class BingImageFetcher
      */
     private function serveError(): void
     {
+        $this->sendCorsHeaders();
         http_response_code(500);
         exit('error: Unable to fetch image');
+    }
+
+    /**
+     * Sends CORS headers.
+     */
+    private function sendCorsHeaders(): void
+    {
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type');
     }
 }

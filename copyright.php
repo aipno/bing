@@ -10,6 +10,9 @@ $format = isset($_GET['format']) ? strtolower(trim($_GET['format'])) : 'json';
 $callback = isset($_GET['callback']) ? trim($_GET['callback']) : '';
 
 // 设置默认响应格式
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 header('Content-Type: application/json; charset=utf-8');
 
 $fetcher = new BingImageFetcher();
