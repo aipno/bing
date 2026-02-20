@@ -11,57 +11,80 @@ Bing首页每日更新一张来自世界各地的精美图片。通过imgRun提�
 我们新增了一个强大的版权信息API，可以按需获取Bing每日壁纸的详细信息。
 
 ### API端点
+
 ```
-GET /copyright.php
+GET https://bing.api.iswxl.cn/copyright.php
 ```
 
 ### 支持的参数
 
 #### type (可选)
+
 指定要返回的特定信息类型：
+
 - `copyright` - 版权信息
-- `copyrightlink` - 版权链接  
+- `copyrightlink` - 版权链接
 - `title` - 图片标题
 - `quiz` - 测验链接
-- `enddate` - 结束日期
+- `enddate` - 结束日期 (YYYYMMDD格式)
+- `startdate` - 开始日期 (YYYYMMDD格式)
+- `hsh` - 图片哈希值标识符
+- `urlbase` - URL基础路径
 - `full_image_url` - 完整图片URL
+- `image_name` - 图片文件名
 
 #### format (可选)
+
 响应格式：
+
 - `json` - JSON格式（默认）
 - `jsonp` - JSONP格式（用于跨域请求）
 
 #### callback (可选)
+
 当format=jsonp时使用的回调函数名
 
 ### 使用示例
 
 #### 获取所有版权信息
+
 ```html
 <script>
-fetch('/copyright.php')
-    .then(response => response.json())
-    .then(data => console.log(data));
+  fetch("https://bing.api.iswxl.cn/copyright.php")
+    .then((response) => response.json())
+    .then((data) => console.log(data));
 </script>
 ```
 
-#### 只获取版权信息
+#### 只获取图片哈希值
+
 ```html
 <script>
-fetch('/copyright.php?type=copyright')
-    .then(response => response.json())
-    .then(data => console.log(data.data));
+  fetch("https://bing.api.iswxl.cn/copyright.php?type=hsh")
+    .then((response) => response.json())
+    .then((data) => console.log(data.data));
+</script>
+```
+
+#### 只获取开始日期
+
+```html
+<script>
+  fetch("https://bing.api.iswxl.cn/copyright.php?type=startdate")
+    .then((response) => response.json())
+    .then((data) => console.log(data.data));
 </script>
 ```
 
 #### JSONP跨域请求
+
 ```html
 <script>
-function handleData(data) {
+  function handleData(data) {
     console.log(data.data);
-}
+  }
 </script>
-<script src="/copyright.php?format=jsonp&callback=handleData&type=title"></script>
+<script src="https://bing.api.iswxl.cn/copyright.php?format=jsonp&callback=handleData&type=image_name"></script>
 ```
 
 更多详细使用说明请查看 [API_README.md](API_README.md)
@@ -112,9 +135,17 @@ function handleData(data) {
 
 2022年4月19日，初版1.0.0版本发布。
 
-2026年2月，版本2.0.0发布：
+2024年12月，版本2.0.0发布：
+
 - 新增版权信息API接口
 - 支持按需获取特定字段信息
 - 支持JSON和JSONP格式
 - 改进cURL资源管理，使用现代PHP最佳实践
 - 添加详细的API文档和使用示例
+
+2024年12月，版本2.1.0发布：
+
+- 细化版权API参数类型
+- 新增startdate、hsh、urlbase、image_name参数
+- 每个type参数现在只返回一条具体信息
+- 优化API文档和使用示例

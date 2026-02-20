@@ -16,8 +16,12 @@ GET https://bing.api.iswxl.cn/copyright.php
 - `copyrightlink` - 版权链接
 - `title` - 图片标题
 - `quiz` - 测验链接
-- `enddate` - 结束日期
+- `enddate` - 结束日期 (YYYYMMDD格式)
+- `startdate` - 开始日期 (YYYYMMDD格式)
+- `hsh` - 图片哈希值标识符
+- `urlbase` - URL基础路径
 - `full_image_url` - 完整图片URL
+- `image_name` - 图片文件名
 
 ### format (可选)
 响应格式：
@@ -42,6 +46,9 @@ GET https://bing.api.iswxl.cn/copyright.php
     "title": "今日图片标题",
     "quiz": "/search?q=Bing+homepage+quiz...",
     "enddate": "20241220",
+    "startdate": "20241219",
+    "hsh": "abcdef123456789",
+    "urlbase": "/th?id=OHR.XXXXX",
     "full_image_url": "https://cn.bing.com/th?id=OHR.XXXXX_1920x1080.jpg",
     "timestamp": 1703068800
 }
@@ -61,21 +68,35 @@ GET https://bing.api.iswxl.cn/copyright.php?type=copyright
 }
 ```
 
-### 3. 只获取图片URL
+### 3. 只获取图片哈希值
 ```bash
-GET https://bing.api.iswxl.cn/copyright.php?type=full_image_url
+GET https://bing.api.iswxl.cn/copyright.php?type=hsh
 ```
 
 **响应示例：**
 ```json
 {
-    "type": "full_image_url",
-    "data": "https://cn.bing.com/th?id=OHR.XXXXX_1920x1080.jpg",
+    "type": "hsh",
+    "data": "abcdef123456789",
     "timestamp": 1703068800
 }
 ```
 
-### 4. JSONP格式（跨域使用）
+### 4. 只获取图片文件名
+```bash
+GET https://bing.api.iswxl.cn/copyright.php?type=image_name
+```
+
+**响应示例：**
+```json
+{
+    "type": "image_name",
+    "data": "OHR.XXXXX_1920x1080.jpg",
+    "timestamp": 1703068800
+}
+```
+
+### 5. JSONP格式（跨域使用）
 ```bash
 GET https://bing.api.iswxl.cn/copyright.php?format=jsonp&callback=myCallback&type=title
 ```
@@ -95,7 +116,7 @@ myCallback({
 ```json
 {
     "error": true,
-    "message": "不支持的type参数，支持的类型：copyright, copyrightlink, title, quiz, enddate, full_image_url"
+    "message": "不支持的type参数，支持的类型：copyright, copyrightlink, title, quiz, enddate, startdate, hsh, urlbase, full_image_url, image_name"
 }
 ```
 
@@ -116,8 +137,13 @@ fetch('https://bing.api.iswxl.cn/copyright.php')
     .then(response => response.json())
     .then(data => console.log(data));
 
-// 只获取版权信息
-fetch('https://bing.api.iswxl.cn/copyright.php?type=copyright')
+// 只获取图片哈希值
+fetch('https://bing.api.iswxl.cn/copyright.php?type=hsh')
+    .then(response => response.json())
+    .then(data => console.log(data.data));
+
+// 只获取开始日期
+fetch('https://bing.api.iswxl.cn/copyright.php?type=startdate')
     .then(response => response.json())
     .then(data => console.log(data.data));
 
@@ -126,7 +152,7 @@ function handleCopyright(data) {
     console.log(data.data);
 }
 const script = document.createElement('script');
-script.src = 'https://bing.api.iswxl.cn/copyright.php?format=jsonp&callback=handleCopyright&type=copyright';
+script.src = 'https://bing.api.iswxl.cn/copyright.php?format=jsonp&callback=handleCopyright&type=image_name';
 document.head.appendChild(script);
 ```
 
@@ -134,28 +160,42 @@ document.head.appendChild(script);
 ```python
 import requests
 
-# 获取所有信息
-response = requests.get('https://bing.api.iswxl.cn/copyright.php')
+# 获取图片文件名
+response = requests.get('https://bing.api.iswxl.cn/copyright.php?type=image_name')
 data = response.json()
-print(data)
+print(data['data'])
 
-# 只获取版权信息
-response = requests.get('https://bing.api.iswxl.cn/copyright.php?type=copyright')
+# 获取开始日期
+response = requests.get('https://bing.api.iswxl.cn/copyright.php?type=startdate')
 data = response.json()
 print(data['data'])
 ```
 
 ### cURL
 ```bash
-# 获取所有信息
-curl "https://bing.api.iswxl.cn/copyright.php"
+# 获取图片哈希值
+curl "https://bing.api.iswxl.cn/copyright.php?type=hsh"
 
-# 只获取版权信息
-curl "https://bing.api.iswxl.cn/copyright.php?type=copyright"
+# 获取URL基础路径
+curl "https://bing.api.iswxl.cn/copyright.php?type=urlbase"
 
-# JSONP格式
-curl "https://bing.api.iswxl.cn/copyright.php?format=jsonp&callback=myFunc&type=title"
+# 获取结束日期
+curl "https://bing.api.iswxl.cn/copyright.php?type=enddate"
 ```
+
+## 新增参数说明
+
+### startdate
+返回图片的开始显示日期，格式为YYYYMMDD
+
+### hsh
+返回图片的唯一哈希标识符，可用于图片识别和缓存
+
+### urlbase
+返回图片URL的基础路径部分
+
+### image_name
+根据urlbase自动提取的图片文件名，格式为"文件名_1920x1080.jpg"
 
 ## 注意事项
 
@@ -165,6 +205,11 @@ curl "https://bing.api.iswxl.cn/copyright.php?format=jsonp&callback=myFunc&type=
 4. **HTTPS**：生产环境中建议使用HTTPS
 
 ## 更新日志
+
+### v1.1.0
+- 细化参数类型，新增startdate、hsh、urlbase、image_name参数
+- 每个type参数现在只返回一条具体信息
+- 优化图片文件名提取逻辑
 
 ### v1.0.0
 - 初始版本发布

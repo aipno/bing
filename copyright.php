@@ -81,6 +81,9 @@ $copyright_data = array(
     'quiz' => isset($image->quiz) ? $image->quiz : '',
     'enddate' => isset($image->enddate) ? $image->enddate : '',
     'full_image_url' => $imgurl,
+    'hsh' => isset($image->hsh) ? $image->hsh : '',
+    'startdate' => isset($image->startdate) ? $image->startdate : '',
+    'urlbase' => isset($image->urlbase) ? $image->urlbase : '',
     'timestamp' => time()
 );
 
@@ -88,13 +91,62 @@ $copyright_data = array(
 if (!empty($type)) {
     $type = strtolower($type);
     
-    // 支持的字段类型
-    $supported_types = array('copyright', 'copyrightlink', 'title', 'quiz', 'enddate', 'full_image_url');
+    // 支持的具体字段类型
+    $supported_types = array(
+        'copyright',      // 版权信息
+        'copyrightlink',  // 版权链接
+        'title',          // 图片标题
+        'quiz',           // 测验链接
+        'enddate',        // 结束日期
+        'startdate',      // 开始日期
+        'hsh',            // 图片哈希值
+        'urlbase',        // URL基础路径
+        'full_image_url', // 完整图片URL
+        'image_name'      // 图片文件名（从urlbase提取）
+    );
     
     if (in_array($type, $supported_types)) {
+        $data = '';
+        
+        switch($type) {
+            case 'copyright':
+                $data = $copyright_data['copyright'];
+                break;
+            case 'copyrightlink':
+                $data = $copyright_data['copyrightlink'];
+                break;
+            case 'title':
+                $data = $copyright_data['title'];
+                break;
+            case 'quiz':
+                $data = $copyright_data['quiz'];
+                break;
+            case 'enddate':
+                $data = $copyright_data['enddate'];
+                break;
+            case 'startdate':
+                $data = $copyright_data['startdate'];
+                break;
+            case 'hsh':
+                $data = $copyright_data['hsh'];
+                break;
+            case 'urlbase':
+                $data = $copyright_data['urlbase'];
+                break;
+            case 'full_image_url':
+                $data = $copyright_data['full_image_url'];
+                break;
+            case 'image_name':
+                // 从urlbase提取图片文件名
+                $urlbase = $copyright_data['urlbase'];
+                $parts = explode('/', $urlbase);
+                $data = end($parts) . '_1920x1080.jpg';
+                break;
+        }
+        
         $response = array(
             'type' => $type,
-            'data' => $copyright_data[$type],
+            'data' => $data,
             'timestamp' => $copyright_data['timestamp']
         );
     } else {
