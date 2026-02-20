@@ -11,7 +11,9 @@ curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
 curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 $resp = curl_exec($curl);
-curl_close($curl);
+// 使用curl_reset替代curl_close，更符合现代PHP实践
+curl_reset($curl);
+unset($curl);
 //var_dump($resp);
 $array = json_decode($resp);
 $imgurl = 'https://cn.bing.com'.$array->{"images"}[0]->{"urlbase"}.'_1080x1920.jpg';
