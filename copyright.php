@@ -66,10 +66,9 @@ if (!empty($type)) {
             $responseData = $copyrightData[$type];
         }
 
+        // 仅返回数据本身，不再包含 type 和 timestamp 字段
         $response = [
-            'type' => $type,
-            'data' => $responseData,
-            'timestamp' => $copyrightData['timestamp']
+            'data' => $responseData
         ];
     } else {
         sendError('不支持的type参数，支持的类型：' . implode(', ', $supportedTypes), $format, $callback);
@@ -77,6 +76,7 @@ if (!empty($type)) {
 } else {
     // 返回所有信息
     $response = $copyrightData;
+    unset($response['timestamp']);
 }
 
 // 输出响应
