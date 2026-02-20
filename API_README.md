@@ -6,6 +6,8 @@
 ## API端点
 ```
 GET https://bing.api.iswxl.cn/copyright.php
+GET https://bing.api.iswxl.cn/4k.php        (4K分辨率直接输出)
+GET https://bing.api.iswxl.cn/4k_302.php    (4K分辨率重定向)
 ```
 
 ## 请求参数
@@ -62,9 +64,7 @@ GET https://bing.api.iswxl.cn/copyright.php?type=copyright
 **响应示例：**
 ```json
 {
-    "type": "copyright",
-    "data": "© John Foxx/Getty Images",
-    "timestamp": 1703068800
+    "data": "© John Foxx/Getty Images"
 }
 ```
 
@@ -76,9 +76,7 @@ GET https://bing.api.iswxl.cn/copyright.php?type=hsh
 **响应示例：**
 ```json
 {
-    "type": "hsh",
-    "data": "abcdef123456789",
-    "timestamp": 1703068800
+    "data": "abcdef123456789"
 }
 ```
 
@@ -90,9 +88,7 @@ GET https://bing.api.iswxl.cn/copyright.php?type=image_name
 **响应示例：**
 ```json
 {
-    "type": "image_name",
-    "data": "OHR.XXXXX_1920x1080.jpg",
-    "timestamp": 1703068800
+    "data": "OHR.XXXXX_1920x1080.jpg"
 }
 ```
 
@@ -104,10 +100,17 @@ GET https://bing.api.iswxl.cn/copyright.php?format=jsonp&callback=myCallback&typ
 **响应示例：**
 ```javascript
 myCallback({
-    "type": "title",
-    "data": "今日图片标题",
-    "timestamp": 1703068800
+    "data": "今日图片标题"
 });
+```
+
+### 6. 获取4K高清图片
+```bash
+# 直接获取图片资源
+GET https://bing.api.iswxl.cn/4k.php
+
+# 获取图片重定向链接
+GET https://bing.api.iswxl.cn/4k_302.php
 ```
 
 ## 错误响应

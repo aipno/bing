@@ -53,19 +53,24 @@ class BingImageFetcher
     /**
      * Gets the full image URL for a specific resolution.
      *
-     * @param string $resolution The resolution suffix (e.g., '1920x1080', '1366x768', '1080x1920').
+     * @param string $resolution The resolution suffix (e.g., '1920x1080', '1366x768', '1080x1920', 'UHD').
      * @return string|null The full URL or null if data fetch fails.
      */
     public function getImageUrl(string $resolution = '1920x1080'): ?string
     {
-        $data = $this->fetchImageData();
+        // Normalize 4K/UHD resolution
+        if ($resolution === '4k' || $resolution === '3840x2160') {
+            $resolution = 'UHD';
+        }
 
+        $data = $this->fetchImageData();
+        
         if (!$data) {
             return null;
         }
 
         $urlBase = $data->images[0]->urlbase ?? null;
-
+        
         if (!$urlBase) {
             return null;
         }
