@@ -1,26 +1,8 @@
 <?php
-$url = "https://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN";
-$curl = curl_init($url);
-curl_setopt($curl, CURLOPT_URL, $url);
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-$headers = array(
-   "Accept: application/json",
-);
-curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-//for debug only!
-curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-$resp = curl_exec($curl);
-// 使用curl_reset替代curl_close，更符合现代PHP实践
-curl_reset($curl);
-unset($curl);
-//var_dump($resp);
-$array = json_decode($resp);
-$imgurl = 'https://cn.bing.com'.$array->{"images"}[0]->{"urlbase"}.'_1920x1080.jpg';
-if($imgurl){
-		header('Location: '.$imgurl); 
-		exit(); 
-} else {     
-     exit('error'); 
-}
-?>
+
+declare(strict_types=1);
+
+require_once 'BingImageFetcher.php';
+
+$fetcher = new BingImageFetcher();
+$fetcher->serveRedirect('1920x1080');

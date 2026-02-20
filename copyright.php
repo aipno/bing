@@ -1,4 +1,9 @@
 <?php
+
+declare(strict_types=1);
+
+require_once 'BingImageFetcher.php';
+
 // 获取请求参数
 $type = isset($_GET['type']) ? trim($_GET['type']) : '';
 $format = isset($_GET['format']) ? strtolower(trim($_GET['format'])) : 'json';
@@ -7,92 +12,37 @@ $callback = isset($_GET['callback']) ? trim($_GET['callback']) : '';
 // 设置默认响应格式
 header('Content-Type: application/json; charset=utf-8');
 
-// Bing API URL
-$url = "https://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN";
+$fetcher = new BingImageFetcher();
+$data = $fetcher->fetchImageData();
 
-// 初始化cURL
-$curl = curl_init($url);
-curl_setopt($curl, CURLOPT_URL, $url);
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($curl, CURLOPT_TIMEOUT, 10);
-
-$headers = array(
-    "Accept: application/json",
-    "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-);
-curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-
-// SSL设置
-curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-// 执行请求
-$resp = curl_exec($curl);
-// 使用curl_reset替代curl_close，更符合现代PHP实践
-curl_reset($curl);
-unset($curl);
-
-// 检查请求是否成功
-if (!$resp) {
-    $error_response = array(
-        'error' => true,
-        'message' => '无法获取Bing数据'
-    );
-    
-    if ($format === 'jsonp' && !empty($callback)) {
-        header('Content-Type: application/javascript; charset=utf-8');
-        echo $callback . '(' . json_encode($error_response, JSON_UNESCAPED_UNICODE) . ');';
-    } else {
-        echo json_encode($error_response, JSON_UNESCAPED_UNICODE);
-    }
-    exit();
-}
-
-// 解析JSON数据
-$array = json_decode($resp);
-
-// 检查数据是否有效
-if (!isset($array->images) || !is_array($array->images) || count($array->images) == 0) {
-    $error_response = array(
-        'error' => true,
-        'message' => 'Bing API返回数据格式错误'
-    );
-    
-    if ($format === 'jsonp' && !empty($callback)) {
-        header('Content-Type: application/javascript; charset=utf-8');
-        echo $callback . '(' . json_encode($error_response, JSON_UNESCAPED_UNICODE) . ');';
-    } else {
-        echo json_encode($error_response, JSON_UNESCAPED_UNICODE);
-    }
-    exit();
+if (!$data) {
+    sendError('无法获取Bing数据', $format, $callback);
 }
 
 // 获取第一张图片的信息
-$image = $array->images[0];
-
-// 构建完整图片URL
-$imgurl = 'https://cn.bing.com' . $image->urlbase . '_1920x1080.jpg';
+$image = $data->images[0];
+$imgUrl = 'https://cn.bing.com' . $image->urlbase . '_1920x1080.jpg';
 
 // 提取版权相关信息
-$copyright_data = array(
-    'copyright' => isset($image->copyright) ? $image->copyright : '',
-    'copyrightlink' => isset($image->copyrightlink) ? $image->copyrightlink : '',
-    'title' => isset($image->title) ? $image->title : '',
-    'quiz' => isset($image->quiz) ? $image->quiz : '',
-    'enddate' => isset($image->enddate) ? $image->enddate : '',
-    'full_image_url' => $imgurl,
-    'hsh' => isset($image->hsh) ? $image->hsh : '',
-    'startdate' => isset($image->startdate) ? $image->startdate : '',
-    'urlbase' => isset($image->urlbase) ? $image->urlbase : '',
+$copyrightData = [
+    'copyright' => $image->copyright ?? '',
+    'copyrightlink' => $image->copyrightlink ?? '',
+    'title' => $image->title ?? '',
+    'quiz' => $image->quiz ?? '',
+    'enddate' => $image->enddate ?? '',
+    'full_image_url' => $imgUrl,
+    'hsh' => $image->hsh ?? '',
+    'startdate' => $image->startdate ?? '',
+    'urlbase' => $image->urlbase ?? '',
     'timestamp' => time()
-);
+];
 
 // 根据type参数返回相应数据
 if (!empty($type)) {
     $type = strtolower($type);
-    
+
     // 支持的具体字段类型
-    $supported_types = array(
+    $supportedTypes = [
         'copyright',      // 版权信息
         'copyrightlink',  // 版权链接
         'title',          // 图片标题
@@ -103,71 +53,57 @@ if (!empty($type)) {
         'urlbase',        // URL基础路径
         'full_image_url', // 完整图片URL
         'image_name'      // 图片文件名（从urlbase提取）
-    );
-    
-    if (in_array($type, $supported_types)) {
-        $data = '';
-        
-        switch($type) {
-            case 'copyright':
-                $data = $copyright_data['copyright'];
-                break;
-            case 'copyrightlink':
-                $data = $copyright_data['copyrightlink'];
-                break;
-            case 'title':
-                $data = $copyright_data['title'];
-                break;
-            case 'quiz':
-                $data = $copyright_data['quiz'];
-                break;
-            case 'enddate':
-                $data = $copyright_data['enddate'];
-                break;
-            case 'startdate':
-                $data = $copyright_data['startdate'];
-                break;
-            case 'hsh':
-                $data = $copyright_data['hsh'];
-                break;
-            case 'urlbase':
-                $data = $copyright_data['urlbase'];
-                break;
-            case 'full_image_url':
-                $data = $copyright_data['full_image_url'];
-                break;
-            case 'image_name':
-                // 从urlbase提取图片文件名
-                $urlbase = $copyright_data['urlbase'];
-                $parts = explode('/', $urlbase);
-                $data = end($parts) . '_1920x1080.jpg';
-                break;
+    ];
+
+    if (in_array($type, $supportedTypes, true)) {
+        $responseData = '';
+
+        if ($type === 'image_name') {
+            // 从urlbase提取图片文件名
+            $parts = explode('/', $copyrightData['urlbase']);
+            $responseData = end($parts) . '_1920x1080.jpg';
+        } elseif (array_key_exists($type, $copyrightData)) {
+            $responseData = $copyrightData[$type];
         }
-        
-        $response = array(
+
+        $response = [
             'type' => $type,
-            'data' => $data,
-            'timestamp' => $copyright_data['timestamp']
-        );
+            'data' => $responseData,
+            'timestamp' => $copyrightData['timestamp']
+        ];
     } else {
-        $response = array(
-            'error' => true,
-            'message' => '不支持的type参数，支持的类型：' . implode(', ', $supported_types)
-        );
+        sendError('不支持的type参数，支持的类型：' . implode(', ', $supportedTypes), $format, $callback);
     }
 } else {
     // 返回所有信息
-    $response = $copyright_data;
+    $response = $copyrightData;
 }
 
-// 格式化输出
-if ($format === 'jsonp' && !empty($callback)) {
-    header('Content-Type: application/javascript; charset=utf-8');
-    echo $callback . '(' . json_encode($response, JSON_UNESCAPED_UNICODE) . ');';
-} else {
-    // 默认JSON格式
-    echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+// 输出响应
+sendResponse($response, $format, $callback);
+
+/**
+ * 发送错误响应
+ */
+function sendError(string $message, string $format, string $callback): void
+{
+    $response = [
+        'error' => true,
+        'message' => $message
+    ];
+    sendResponse($response, $format, $callback);
+    exit();
 }
 
-exit();
-?>
+/**
+ * 发送格式化响应
+ */
+function sendResponse(array $data, string $format, string $callback): void
+{
+    if ($format === 'jsonp' && !empty($callback)) {
+        header('Content-Type: application/javascript; charset=utf-8');
+        echo $callback . '(' . json_encode($data, JSON_UNESCAPED_UNICODE) . ');';
+    } else {
+        echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    }
+}
